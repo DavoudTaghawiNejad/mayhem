@@ -1,4 +1,5 @@
-agent_class number
-upfirm 10
-downfirm 10
-household 1
+agent_class number typ
+upfirm 5 K
+upfirm 5 WK
+downfirm 10 na
+household 1 na
