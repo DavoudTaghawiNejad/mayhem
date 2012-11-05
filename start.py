@@ -7,14 +7,29 @@ from household import Household
 from abce import *
 
 
-
 for simulation_parameters in read_parameters('simulation_parameters.csv'):
     s = Simulation(simulation_parameters)
     action_list = [
+        ('downfirm', 'age_captial'),
+
         ('upfirm', 'labor_market_info_to_auctioneer'),
         ('household', 'labor_auctioneer'),
         ('upfirm', 'hire_labor'),
         ('household', 'supply_labor'),
+        ('upfirm', 'production'),
+
+
+        ('downfirm', 'consumer_good_to_auctioneer'),
+        ('household', 'consumer_good_auctioneer'),
+        ('downfirm', 'sell_consumer_good'),
+        ('household', 'buy_consumer_good'),
+
+        ('downfirm', 'update_expected_price'),
+        ('downfirm', 'update_expected_price'),
+
+
+
+
     ]
     s.add_action_list(action_list)
 

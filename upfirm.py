@@ -27,3 +27,7 @@ class UpFirm(abceagent.Agent, abceagent.Firm):
         except NotEnoughGoods:
             self.buy('household', 0, 'labor', self.possession('money') * price, price)
 
+
+    def production(self):
+        """ produces all he can """
+        self.produce_use_everything()
