@@ -1,2 +1,2 @@
  name random_seed num_rounds trade_logging trade_repetitions captial_types
-1 test_sim_1_ None 10000 individual 10 2
+1 test_sim_1_ None 100 individual 10 2

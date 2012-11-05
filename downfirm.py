@@ -20,6 +20,9 @@ class DownFirm(abceagent.Agent, abceagent.Firm):
         self.sales_price_consumption_good = 5
 
     def age_captial(self):
+        """ deletes all captial that should die this round and creates a fake captial K,
+        that is the sum of all kapitals
+        """
         obsolete = self.possessions_filter(endswith='_%i' % self.round)
         for good in obsolete:
             self.destroy(good, obsolete[good])
@@ -34,17 +37,22 @@ class DownFirm(abceagent.Agent, abceagent.Firm):
         self.produce(self.production, {'working_captial': production_maximum})
 
     def consumer_good_to_auctioneer(self):
+        """ announces its possession of consumer_good """
         self.message('household', 0, 'consumer_good_quantity', self.possession('consumer_good'))
 
     def sell_consumer_good(self):
+        """ sells all consumer_good for the prices the auctioneer send """
         self.sales_price_consumption_good_consumption_good = self.get_messages('consumer_good_demand')[0].content
         self.sell('household', 0, 'consumer_good', self.possession('consumer_good'), self.sales_price_consumption_good_consumption_good)
 
     def update_expected_price(self):
+        """ dummy for futur experiments """
         self.expected_price_of_consumption_good = self.sales_price_consumption_good_consumption_good
 
     def sell_captial(self):
-        """ calculates the profit maximizing
+        """ 1. take a random price (can be learned)
+            2. calculate for this price how much of the good should be sold to maximize profit.
+            3. offers to sell the according amount.
         """
         price = np.random.uniform(0, 10, 1)
         objective = lambda x: - (self.sales_price_consumption_good
@@ -57,6 +65,7 @@ class DownFirm(abceagent.Agent, abceagent.Firm):
         self.sell('downfirm', random.randint(0, self.num_downfirms), 'K', float(quantity), price)
 
     def buy_captial(self):
+        """ buys the profit maximizing amount of captial """
         offer = dict(self.get_offers_all(descending=True))
         while len(offer) > 0:
             try:

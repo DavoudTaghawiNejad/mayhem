@@ -26,12 +26,14 @@ class UpFirm(abceagent.Agent, abceagent.Firm):
         self.begin_money = self.possession('money')
 
     def labor_market_info_to_auctioneer(self):
+        """ sends it's cobb_douglas_exponent and sales_price ot the auctioneer """
         self.sales_price = 1.1
         self.cobb_douglas_exponent = 1.1
         self.message('household', 0, 'upfirm_sales_price', self.sales_price)
         self.message('household', 0, 'cobb_douglas_exponent', self.cobb_douglas_exponent)
 
     def hire_labor(self):
+        """ hires as much labor as supplied, which is profit maximizing for the  """
         price = self.get_messages('labor_supply')[0].content
         quantity = (self.cobb_douglas_exponent * self.sales_price / price) ** self.exp
         try:
