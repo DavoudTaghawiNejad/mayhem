@@ -1,4 +1,4 @@
-agent_class number typ
+agent_class number type
 upfirm 5 K
 upfirm 5 WK
 downfirm 10 na

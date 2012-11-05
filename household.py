@@ -63,6 +63,9 @@ class Household(abceagent.Agent, abceagent.Household):
         for offer in offers:
             self.accept(offer)
 
+    def sell_captial(self):
+        pass
+
 
 
 
