@@ -53,7 +53,15 @@ class Household(abceagent.Agent, abceagent.Household):
         for offer in offers:
             self.accept(offer)
 
+    def consumer_good_auctioneer(self):
+        quotes = self.get_messages('consumer_good_quantity')
+        quantity = sum([quote.content for quote in quotes])
+        self.message_to_group('downfirm', 'consumer_good_demand', quantity / self.possession('money'))
 
+    def buy_consumer_good(self):
+        offers = self.get_offers('consumer_good')
+        for offer in offers:
+            self.accept(offer)
 
 
 
