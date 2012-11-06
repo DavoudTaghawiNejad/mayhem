@@ -39,7 +39,7 @@ class UpFirm(abceagent.Agent, abceagent.Firm):
         try:
             self.buy('household', 0, 'labor', quantity, price)
         except NotEnoughGoods:
-            self.buy('household', 0, 'labor', self.possession('money') * price, price)
+            self.buy('household', 0, 'labor', self.possession('money') / price, price)
 
     def sell_captial(self):
         price, quantity = self.learner.get_action()
