@@ -19,15 +19,16 @@ class Household(abceagent.Agent, abceagent.Household):
         """
         expected_sales_prices = self.get_messages('upfirm_sales_price')
         cd = self.get_messages('cobb_douglas_exponent')
+        # max_money = self.get_messages('max_money')
         rng = range(len(expected_sales_prices))
 
         labor = Symbol('labor')
-        p = Symbol('p')
+        wage = Symbol('wage')
 
         demand_equations = [
             solve(
                 Eq(0,
-                    diff(expected_sales_prices[i] * labor ** float(cd[i]) - labor * p,
+                    diff(expected_sales_prices[i] * labor ** float(cd[i]) - labor * wage,
                     labor)
                 ),
             labor)[0]
@@ -41,12 +42,12 @@ class Household(abceagent.Agent, abceagent.Household):
         labor_supply = solve(
                             Eq(0,
                                 diff(
-                                    (24 - labor) ** self.y * (labor * p / self.price_consumption_good) * (1 - self.y),
+                                    (24 - labor) ** self.y * (labor * wage / self.price_consumption_good) * (1 - self.y),
                                 labor)
                             ),
                         labor)
         equation = Eq(labor_demand, labor_supply[0])
-        price = solve(equation, p)
+        price = solve(equation, wage)
         price = price[1]
         assert price >= 0
         assert price == float(price)
