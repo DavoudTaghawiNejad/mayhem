@@ -47,11 +47,13 @@ class Household(abceagent.Agent, abceagent.Household):
                             ),
                         labor)
         equation = Eq(labor_demand, labor_supply[0])
-        price = solve(equation, wage)
-        price = price[1]
-        assert price >= 0
-        assert price == float(price)
-        self.message_to_group('upfirm', 'labor_supply', float(price))
+        wage = solve(equation, wage)
+        wage = wage[1]
+        assert wage >= 0
+        assert wage == float(wage)
+        self.log_value('labor_wage', wage)
+        self.log_value('labor_hours', labor_supply[0])
+        self.message_to_group('upfirm', 'labor_supply', float(wage))
 
     def supply_labor(self):
         """ recieve the wage and send labor"""
@@ -65,6 +67,8 @@ class Household(abceagent.Agent, abceagent.Household):
         """
         quotes = self.get_messages('consumer_good_quantity')
         quantity = sum([quote.content for quote in quotes])
+        self.log_value('consumer_good_quantity', quantity)
+        self.log_value('consumer_good_price', quantity / self.possession('money'))
         self.message_to_group('downfirm', 'consumer_good_demand', quantity / self.possession('money'))
 
     def buy_consumer_good(self):

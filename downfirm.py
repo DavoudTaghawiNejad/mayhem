@@ -11,11 +11,15 @@ class DownFirm(abceagent.Agent, abceagent.Firm):
         """ Productes a cobb_douglas function with random self.exponents that sum up to 1 """
         abceagent.Agent.__init__(self, *_pass_to_engine)
         self.num_downfirms = simulation_parameters['num_downfirm']
-        self.exp_num = np.random.uniform(size=2)
+        while True:
+            self.exp_num = np.random.normal(size=2) + 0.5
+            if all(self.exp_num > 0):
+                break
         self.exp_num /= np.sum(self.exp_num)
         self.exponents = {}
         self.exponents['W'] = self.exp_num[0]
         self.exponents['K'] = self.exp_num[1]
+        print(self.exponents)
         self.set_cobb_douglas('consumer_good', 1, self.exponents)
         self.sales_price_consumption_good = 5
 
@@ -32,9 +36,9 @@ class DownFirm(abceagent.Agent, abceagent.Firm):
         """ produces consumption good from all its working capital. The maximum
         it can produce is given by the investment_good K he has
         """
-        self.log('working', {'capital': float(self.possession('working_captial'))})
-        production_maximum = min(self.possession('K') ** self.exponents[0], self.possession('working_captial'))  # produce the maximum or all you got
-        self.produce(self.production, {'working_captial': production_maximum})
+        self.log('before_production', self.possessions_all())
+        production_maximum = min(self.possession('K') ** self.exponents['K'], self.possession('W'))  # produce the maximum or all you got
+        self.log('consumption_good', self.produce({'K': production_maximum, 'W': production_maximum}))
 
     def consumer_good_to_auctioneer(self):
         """ announces its possession of consumer_good """
@@ -65,46 +69,68 @@ class DownFirm(abceagent.Agent, abceagent.Firm):
         self.sell('downfirm', random.randint(0, self.num_downfirms), 'K', float(quantity), price)
 
     def buy_captial(self):
+        if self.idn % 5 == 0:
+            print('buy_captial')
+
         """ buys the profit maximizing amount of captial """
-        offer = dict(self.get_offers_all(descending=True))
-        while len(offer) > 0:
-            try:
+        offers = dict(self.get_offers_all(descending=True))
+        while offers:
+            offers = dict([(key, value) for key, value in offers.items() if value])
+            if 'K' in offers and 'W' in offers:
                 objective = lambda x: - (self.sales_price_consumption_good
                                             * (self.possession('W') + x[0]) ** self.exponents['W']
                                             * (self.possession('K') + x[1]) ** self.exponents['K']
-                                            - x[0] * offer['W'][-1]['price']
-                                            - x[1] * offer['K'][-1]['price']
+                                            - x[0] * offers['W'][-1]['price']
+                                            - x[1] * offers['K'][-1]['price']
                                         )
-                res = minimize(objective, x0=(2, 0), method='L-BFGS-B', bounds=((0, offer['W'][-1]['quantity']), (0, offer['K'][-1]['quantity'])))
+                res = minimize(objective, x0=(2, 0), method='L-BFGS-B', bounds=((0, offers['W'][-1]['quantity']), (0, offers['K'][-1]['quantity'])))
                 x = res.x
-                self.accept_partial(offer['W'].pop(), x[0])
-                self.accept_partial(offer['K'].pop(), x[1])
-            except (KeyError):
-                if 'W' in offer:
-                    objective = lambda x: - (self.sales_price_consumption_good
-                                            * (self.possession('W') + x) ** self.exponents['W']
-                                            - x * offer['W'][-1]['price']
-                                        )
-                    res = minimize_scalar(
-                                objective,
-                                method='bounded',
-                                bounds=(0, offer['W'][-1]['quantity'])
-                    )
-                    quantity = min(res.x, self.possession('money') / offer['W'][-1]['price'])
-                    self.accept_partial(offer['W'].pop(), quantity)
-                if 'K' in offer:
+                print(x)
+                try:
+                    oo = offers['W'].pop()
+                    self.accept_partial(oo, x[0])
+                except NotEnoughGoods:
+                    self.accept_partial(oo, self.possession('money') / oo['price'])
+                try:
+                    oo = offers['K'].pop()
+                    self.accept_partial(oo, x[1])
+                except NotEnoughGoods:
+                    self.accept_partial(oo, self.possession('money') / oo['price'])
+            else:
+                if 'K' in offers:
                     objective = lambda x: - (self.sales_price_consumption_good
                                             * (self.possession('K') + x) ** self.exponents['K']
-                                            - x * offer['K'][-1]['price']
+                                            - x * offers['K'][-1]['price']
                                         )
-                    res = minimize_scalar(
-                            objective,
-                            method='bounded',
-                            bounds=(0, offer['K'][-1]['quantity'])
+                    try:
+                        res = minimize_scalar(
+                                objective,
+                                method='bounded',
+                                bounds=(0, offers['K'][-1]['quantity'])
+                        )
+                    except IndexError:
+                        print('----', offers['K'], '----')
+                        raise
+                    quantity = min(res.x, self.possession('money') / offers['K'][-1]['price'])
+                    self.accept_partial(offers['K'].pop(), quantity)
+                if 'W' in offers:
+                    objective = lambda x: - (self.sales_price_consumption_good
+                                            * (self.possession('W') + x) ** self.exponents['W']
+                                            - x * offers['W'][-1]['price']
+                                        )
+                    try:
+                        res = minimize_scalar(
+                                    objective,
+                                    method='bounded',
+                                    bounds=(0, offers['W'][-1]['quantity'])
                     )
-                    quantity = min(res.x, self.possession('money') / offer['K'][-1]['price'])
-                    self.accept_partial(offer['K'].pop(), quantity)
-            offer = dict([(key, value) for key, value in offer.items() if len(value) > 0])
+                    except:
+                        print '++++', offers
+                        raise
+                    quantity = min(res.x, self.possession('money') / offers['W'][-1]['price'])
+                    self.accept_partial(offers['W'].pop(), quantity)
+
+
 
 
 

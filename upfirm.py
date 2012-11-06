@@ -3,6 +3,7 @@ import abceagent
 from abcetools import is_zero, is_positive, is_negative, NotEnoughGoods
 import random
 from cacla import CaclaLearner
+import time
 
 
 class UpFirm(abceagent.Agent, abceagent.Firm):
@@ -13,11 +14,13 @@ class UpFirm(abceagent.Agent, abceagent.Firm):
         self.exp = 1 / (self.cobb_douglas_exponent)
         self.sales_price = 1
         self.num_downfirms = simulation_parameters['num_downfirm']
-        self.learner = CaclaLearner(1, 2)
+
+        self.learner = CaclaLearner(1, 20)
+
         if agent_parameters['type'] == 'K':
-            self.set_cobb_douglas('K%s' % self.idn, 1, {'labor': self.cobb_douglas_exponent})
-            self.captial_type = 'K%s' % self.idn
-        elif agent_parameters['type'] == 'WK':
+            self.set_cobb_douglas('K', 1, {'labor': self.cobb_douglas_exponent})
+            self.captial_type = 'K'
+        elif agent_parameters['type'] == 'W':
             self.set_cobb_douglas('W', 1, {'labor': self.cobb_douglas_exponent})
             self.captial_type = 'W'
         else:
@@ -42,15 +45,23 @@ class UpFirm(abceagent.Agent, abceagent.Firm):
             self.buy('household', 0, 'labor', self.possession('money') / price, price)
 
     def sell_captial(self):
-        price, quantity = self.learner.get_action()
-        price = float(price) * 10
-        quantity = float(quantity) * self.possession('self.captial_type')
-        if price > 0:
-            self.sell('downfirm', random.randint(0, self.num_downfirms), self.captial_type, quantity, price)
+        actions = self.learner.get_action()
+        actions = actions.reshape((10, 2))
+        for action in actions:
+            price = float(action[0]) * 10
+            quantity = min(float(action[1]) * self.possession(self.captial_type), self.possession(self.captial_type))
+            if price > 0:
+                rnd = random.randint(0, self.num_downfirms)
+                try:
+                    self.sell('downfirm', rnd, self.captial_type, quantity, price)
+                except:
+                    self.sell('downfirm', rnd, self.captial_type, self.possession(self.captial_type), price)
+
 
     def production(self):
         """ produces all he can """
-        self.produce_use_everything()
+        self.log_value('labor_before_production', self.possession('labor'))
+        self.log('production', self.produce_use_everything())
 
     def learn(self):
         self.learner.set_state([0])

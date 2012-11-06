@@ -17,12 +17,10 @@ for simulation_parameters in read_parameters('simulation_parameters.csv'):
         ('upfirm', 'hire_labor'),
         ('household', 'supply_labor'),
         ('upfirm', 'production'),
-
-
         ('all', 'sell_captial'),
         ('downfirm', 'buy_captial'),
+        ('downfirm', 'production'),
 
-        ('here'),
         ('downfirm', 'consumer_good_to_auctioneer'),
         ('household', 'consumer_good_auctioneer'),
         ('downfirm', 'sell_consumer_good'),
@@ -31,7 +29,6 @@ for simulation_parameters in read_parameters('simulation_parameters.csv'):
         ('downfirm', 'update_expected_price'),
 
         ('upfirm', 'learn'),
-        ('end'),
     ]
     s.add_action_list(action_list)
 
@@ -46,10 +43,7 @@ for simulation_parameters in read_parameters('simulation_parameters.csv'):
     for i in range(10):
         s.declare_perishable(good='K%i' % i)
 
-    s.panel_data('household', command='end')
-    s.panel_data('firm', command='end')
-    s.panel_data('household', command='here')
-    s.panel_data('firm', command='here')
+    # s.debug_subround()
 
     s.run()
 
